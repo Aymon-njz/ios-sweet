@@ -1,5 +1,34 @@
 # iOS 16 on sweet (Redmi Note 10 Pro, SM7150) - working notes
 
+## Onyx / Redmi Turbo 4 Pro bring-up (2026-10-19)
+
+**Scope:** a separate, experimental port target for Redmi Turbo 4 Pro / POCO
+F7 (`onyx`, SM8735).  It must not reuse Sweet's flash instructions or memory
+map.  The active-slot boot, DTBO, VBMeta, vendor boot, init boot, persist and
+modem-calibration partitions were read into an ignored local `backup/` folder
+before any test.  No device partition has been written.
+
+**First temporary-boot milestone passed:** the Onyx shim was accepted by ABL
+through `fastboot boot`.  Its framebuffer console works at 1280x2772 using
+the live DTB splash region (`0xfc800000`), and the read-only UFS probe finds
+the host at `0x01d84000` and completes its inquiry/read commands.  Onyx's GIC
+is GICv3 at `0x17100000` / `0x17180000` (not Sweet's addresses).
+
+**Boot-protocol finding:** this Android 15+ ABL accepts a header-v4 temporary
+boot image but obtains `/chosen/linux,initrd-*` from the installed
+`vendor_boot_a` ramdisk.  Therefore the first shim correctly reported `no
+SWEETXNU payload`.  A self-contained header-v2 image was accepted by fastboot
+but immediately returned to fastboot with a black screen, so do not use that
+format for Onyx.  The next payload test needs an Onyx-compatible temporary
+vendor-ramdisk mechanism; do not flash `vendor_boot` without an explicit user
+confirmation.
+
+**Host changes:** `shim/board.h` selects hardware constants; `shim/build.sh
+--onyx` packages a validated v4 image; `tools/fdt-inspect.py` inspects captured
+FDTs; `tools/mkadt.py --onyx` emits an Apple Device Tree using a 758 MiB
+contiguous high-memory bank at `0x8_8000_0000`.  These values are based on
+the captured live FDT and are untested by XNU yet.
+
 ## Agent handoff / active work (2026-10-15, latest)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<
