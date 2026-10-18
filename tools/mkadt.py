@@ -87,10 +87,11 @@ def build(seed=None, qemu=False, highmem=False, onyx=False):
         phys_base, mem_size = ONYX_PHYS_BASE, ONYX_MEM_SIZE
         gicd, gicr, gicr_size = ONYX_GICD, ONYX_GICR, ONYX_GICR_SIZE
         fb, fb_size, fb_w, fb_h, fb_stride = ONYX_FB, ONYX_FB_SIZE, ONYX_FB_W, ONYX_FB_H, ONYX_FB_STRIDE
-        timebase = TIMEBASE
+        timebase, vtimer_intid = TIMEBASE, 27
     else:
         phys_base, mem_size = (HIGH_PHYS_BASE, HIGH_MEM_SIZE) if highmem else (PHYS_BASE, MEM_SIZE)
         gicd, gicr, timebase = (QEMU_GICD, QEMU_GICR, QEMU_TIMEBASE) if qemu else (GICD, GICR, TIMEBASE)
+        vtimer_intid = QEMU_VTIMER_INTID if qemu else VTIMER_INTID
         gicr_size = GICR_SIZE
         fb, fb_size, fb_w, fb_h, fb_stride = FB, FB_SIZE, FB_W, FB_H, FB_STRIDE
     seed = seed if seed is not None else os.urandom(64)
@@ -173,7 +174,7 @@ def build(seed=None, qemu=False, highmem=False, onyx=False):
         ph(),
         ('compatible', cstr('arm,gic-v3')),
         ('interrupt-controller', b''),
-        ('virtual-timer-intid', u32(QEMU_VTIMER_INTID if qemu else VTIMER_INTID)),
+        ('virtual-timer-intid', u32(vtimer_intid)),
         ('reg', u64(gicd - SOC_BASE, GICD_SIZE, gicr - SOC_BASE, gicr_size)),
     ])
     arm_io = node('arm-io', [

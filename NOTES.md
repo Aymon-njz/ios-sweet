@@ -12,7 +12,8 @@ before any test.  No device partition has been written.
 through `fastboot boot`.  Its framebuffer console works at 1280x2772 using
 the live DTB splash region (`0xfc800000`), and the read-only UFS probe finds
 the host at `0x01d84000` and completes its inquiry/read commands.  Onyx's GIC
-is GICv3 at `0x17100000` / `0x17180000` (not Sweet's addresses).
+is GICv3 at `0x17100000` / `0x17180000` (not Sweet's addresses); its virtual
+timer is the standard PPI 11 / INTID 27, read from the Android FDT.
 
 **Boot-protocol finding:** this Android 15+ ABL accepts a header-v4 temporary
 boot image but obtains `/chosen/linux,initrd-*` from the installed
