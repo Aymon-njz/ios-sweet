@@ -24,6 +24,20 @@ format for Onyx.  The next payload test needs an Onyx-compatible temporary
 vendor-ramdisk mechanism; do not flash `vendor_boot` without an explicit user
 confirmation.
 
+**First XNU test (2026-10-20):** passed the shim handoff and executed the
+CI-built `kernel.development.sweet` on the phone. The captured screen shows
+XNU reaching VM/zone initialization, IOKit, AMFI, libpthread and the
+guarded-vnode policy. The first blocker is `Unable to find driver for this
+platform: "D22AP"` in `IOPlatformExpert.cpp:2319`, followed by `handshake
+structure not initialized`. This is expected: the generated ADT claims the
+iPhone-X D22AP identity but the Sweet-only platform expert does not match the
+Onyx compatible string. Next: extend that matching path for `xiaomi,onyx`.
+
+The stock `vendor_boot_a` was restored immediately from the verified 96 MiB
+backup, and Android booted normally. This fastboot implementation lacks
+`fetch`, so post-write readback is unavailable; retain the host-side SHA-256
+manifests.
+
 **Host changes:** `shim/board.h` selects hardware constants; `shim/build.sh
 --onyx` packages a validated v4 image; `tools/fdt-inspect.py` inspects captured
 FDTs; `tools/mkadt.py --onyx` emits an Apple Device Tree using a 758 MiB
