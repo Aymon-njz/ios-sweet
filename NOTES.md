@@ -6,7 +6,9 @@
 F7 (`onyx`, SM8735).  It must not reuse Sweet's flash instructions or memory
 map.  The active-slot boot, DTBO, VBMeta, vendor boot, init boot, persist and
 modem-calibration partitions were read into an ignored local `backup/` folder
-before any test.  No device partition has been written.
+before any test.  One test-only vendor-boot ramdisk swap was subsequently
+written, then immediately restored from the verified backup; Android booted
+normally afterwards.
 
 **First temporary-boot milestone passed:** the Onyx shim was accepted by ABL
 through `fastboot boot`.  Its framebuffer console works at 1280x2772 using

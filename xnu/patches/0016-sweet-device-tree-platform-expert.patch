@@ -12,6 +12,15 @@ diff --git a/iokit/KernelConfigTables.cpp b/iokit/KernelConfigTables.cpp
 +    "     'IONameMatch'     = 'xiaomi,sweet';"
 +    "     'IOProbeScore'    = 10000:32;"
 +    "   },"
++    /* The iOS-facing D22AP identity is deliberately first in Onyx's ADT
++     * compatible list. Match the physical-board compatible explicitly so
++     * it reaches this minimal DT platform expert rather than IOPanicPlatform. */
++    "   {"
++    "     'IOClass'         = SweetPlatformExpert;"
++    "     'IOProviderClass' = IOPlatformExpertDevice;"
++    "     'IONameMatch'     = 'xiaomi,onyx';"
++    "     'IOProbeScore'    = 10000:32;"
++    "   },"
 +#endif
      "   {"
      "     'IOClass'         = IOPanicPlatform;"
