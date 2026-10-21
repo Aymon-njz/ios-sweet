@@ -76,7 +76,7 @@
  	}
  	__builtin_arm_dsb(0xf);
  
-@@ -180,20 +207,44 @@
+@@ -180,20 +207,45 @@
  	uint64_t deadline;
  	nanoseconds_to_absolutetime(CMD_TIMEOUT_NS, &deadline);
  	deadline += mach_absolute_time();
