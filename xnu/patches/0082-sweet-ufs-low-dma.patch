@@ -1,6 +1,6 @@
 --- a/bsd/dev/sweet_ufs.c
 +++ b/bsd/dev/sweet_ufs.c
-@@ -70,9 +70,11 @@
+@@ -70,11 +70,13 @@
  #define CAP_64AS        (1u << 24)              /* 64-bit DMA addressing */
  
  #define UFS_BLOCK       4096u
@@ -12,6 +12,8 @@
 +/* A live-FDT RAM span: 0x81300000..0x81400000, outside all reserved regions. */
 +#define SWEET_UFS_LOW_DMA_PA 0x81300000ULL
  #define CMD_TIMEOUT_NS  (5ull * NSEC_PER_SEC)
+ #define CMD_SPIN_NS     (50ull * NSEC_PER_USEC)
+ #define CMD_SLEEP_NS    (200ull * NSEC_PER_USEC)
  
  struct utrd {
 @@ -604,16 +607,29 @@
