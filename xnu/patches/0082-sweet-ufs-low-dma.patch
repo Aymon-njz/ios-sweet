@@ -1,0 +1,55 @@
+--- a/bsd/dev/sweet_ufs.c
++++ b/bsd/dev/sweet_ufs.c
+@@ -70,9 +70,11 @@
+ #define CAP_64AS        (1u << 24)              /* 64-bit DMA addressing */
+ 
+ #define UFS_BLOCK       4096u
+-#define BOUNCE_SIZE     (1u << 20)
++#define BOUNCE_SIZE     0xfc000u                /* leaves 16 KiB descriptors in the 1 MiB low DMA window */
+ #define PRDT_CHUNK      (256u << 10)            /* PRDT byte count field: 18 bits */
+-#define PRDT_MAX        (BOUNCE_SIZE / PRDT_CHUNK)
++#define PRDT_MAX        ((BOUNCE_SIZE + PRDT_CHUNK - 1) / PRDT_CHUNK)
++/* A live-FDT RAM span: 0x81300000..0x81400000, outside all reserved regions. */
++#define SWEET_UFS_LOW_DMA_PA 0x81300000ULL
+ #define CMD_TIMEOUT_NS  (5ull * NSEC_PER_SEC)
+ 
+ struct utrd {
+@@ -604,16 +607,29 @@
+ 	su.wait = (wait == 1);
+ 
+ 	su.regs = ml_io_map(reg[0], reg[1]);
+-	if (kmem_alloc_contig(kernel_map, &su.dma, DMA_SIZE, PAGE_MASK, 0, 0,
+-	    KMA_DATA | KMA_ZERO | KMA_PERMANENT, VM_KERN_MEMORY_IOKIT) != KERN_SUCCESS) {
+-		printf("SWEET UFS: no contiguous DMA memory\n");
+-		return ENOMEM;
+-	}
+-	ppnum_t pn = pmap_find_phys(kernel_pmap, (addr64_t)su.dma);
+-	if (!pn) {
+-		return ENOMEM;
++	uint32_t lowdma = 0;
++	PE_parse_boot_argn("ufslowdma", &lowdma, sizeof(lowdma));
++	if (lowdma == 1) {
++		su.dma_pa = SWEET_UFS_LOW_DMA_PA;
++		su.dma = ml_io_map(su.dma_pa, DMA_SIZE);
++		if (!su.dma) {
++			printf("SWEET UFS: cannot map low DMA window\n");
++			return ENOMEM;
++		}
++		bzero((void *)su.dma, DMA_SIZE);
++		printf("SWEET UFS: using low DMA window at 0x%llx\n", su.dma_pa);
++	} else {
++		if (kmem_alloc_contig(kernel_map, &su.dma, DMA_SIZE, PAGE_MASK, 0, 0,
++		    KMA_DATA | KMA_ZERO | KMA_PERMANENT, VM_KERN_MEMORY_IOKIT) != KERN_SUCCESS) {
++			printf("SWEET UFS: no contiguous DMA memory\n");
++			return ENOMEM;
++		}
++		ppnum_t pn = pmap_find_phys(kernel_pmap, (addr64_t)su.dma);
++		if (!pn) {
++			return ENOMEM;
++		}
++		su.dma_pa = ptoa_64(pn);
+ 	}
+-	su.dma_pa = ptoa_64(pn);
+ 	su.lun = 0;
+ 	su.secsize = DEV_BSIZE;
+ 
