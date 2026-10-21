@@ -1,0 +1,32 @@
+--- a/bsd/dev/sweet_ufs.c
++++ b/bsd/dev/sweet_ufs.c
+@@ -140,9 +140,20 @@
+ static void
+ dma_clean(uint32_t off, uint32_t len)
+ {
+ 	clean_dcache64((addr64_t)(su.dma_pa + off), len, TRUE);
+ }
+ 
++/* Device-mapped low DMA memory must not be cleared with vectorized bzero. */
++static void
++dma_zero(volatile uint32_t *p, uint32_t len)
++{
++	assert(((uintptr_t)p & 3) == 0 && (len & 3) == 0);
++	for (uint32_t n = len / sizeof(*p); n != 0; n--) {
++		*p++ = 0;
++	}
++	__builtin_arm_dsb(0xf);
++}
++
+ /*
+  * One SCSI command in slot 0, data (if any) to/from the bounce buffer
+  * (to the device when write is set). Returns 0 or an errno.
+@@ -157,6 +167,6 @@
+ 
+ 	assert(len <= BOUNCE_SIZE);
+-	bzero(utrd, sizeof(*utrd));
+-	bzero(ucd, sizeof(*ucd));
++	dma_zero((volatile uint32_t *)utrd, sizeof(*utrd));
++	dma_zero((volatile uint32_t *)ucd, sizeof(*ucd));
+ 
+ 	ucd->cmd[0] = 0x01;                     /* COMMAND UPIU */
