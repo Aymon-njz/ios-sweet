@@ -16,7 +16,7 @@
  #define CMD_SLEEP_NS    (200ull * NSEC_PER_USEC)
  
  struct utrd {
-@@ -604,16 +607,29 @@
+@@ -604,16 +607,28 @@
  	su.wait = (wait == 1);
  
  	su.regs = ml_io_map(reg[0], reg[1]);
@@ -37,7 +37,6 @@
 +			printf("SWEET UFS: cannot map low DMA window\n");
 +			return ENOMEM;
 +		}
-+		bzero((void *)su.dma, DMA_SIZE);
 +		printf("SWEET UFS: using low DMA window at 0x%llx\n", su.dma_pa);
 +	} else {
 +		if (kmem_alloc_contig(kernel_map, &su.dma, DMA_SIZE, PAGE_MASK, 0, 0,
