@@ -9,8 +9,13 @@
  #define PRDT_CHUNK      (256u << 10)            /* PRDT byte count field: 18 bits */
 -#define PRDT_MAX        (BOUNCE_SIZE / PRDT_CHUNK)
 +#define PRDT_MAX        ((BOUNCE_SIZE + PRDT_CHUNK - 1) / PRDT_CHUNK)
-+/* A live-FDT RAM span: 0x81300000..0x81400000, outside all reserved regions. */
-+#define SWEET_UFS_LOW_DMA_PA 0x81300000ULL
++/*
++ * Redmi Turbo 4 Pro / Onyx: a 1 MiB UFS window in the actual high RAM bank.
++ * The shim reserves it in topOfKernelData before VM initialization.  It must
++ * stay inside the ADT range (0x880000000..0x8af6fd000); 0x81300000 belongs
++ * to the older Sweet map and is not addressable by this kernel.
++ */
++#define SWEET_UFS_LOW_DMA_PA 0x882600000ULL
  #define CMD_TIMEOUT_NS  (5ull * NSEC_PER_SEC)
  #define CMD_SPIN_NS     (50ull * NSEC_PER_USEC)
  #define CMD_SLEEP_NS    (200ull * NSEC_PER_USEC)

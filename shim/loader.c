@@ -8,6 +8,7 @@
  * and caches off, x0 = boot_args (physical).
  */
 #include <stdint.h>
+#include "board.h"
 #include "console.h"
 #include "fdt.h"
 #include "loader.h"
@@ -114,6 +115,17 @@ const char *loader_boot(uintptr_t dtb)
 	copy64(adt_pa, rd_start + p->adt_off, p->adt_size);
 	uintptr_t ba_pa = (adt_pa + p->adt_size + PAGE_16K - 1) & ~(PAGE_16K - 1);
 	uintptr_t top = ba_pa + PAGE_16K;
+
+#if defined(ONYX)
+	/*
+	 * Keep the diagnostic UFS DMA area out of XNU's page allocator.  It is
+	 * deliberately above the payload's ADT/boot_args and below the end of the
+	 * contiguous RAM bank advertised in the Apple Device Tree.
+	 */
+	if (top > UFS_DMA_PA)
+		return "UFS DMA window overlaps kernel boot data";
+	top = UFS_DMA_PA + UFS_DMA_SIZE;
+#endif
 
 	zero64(ba_pa, PAGE_16K);
 	volatile struct boot_args *ba = (volatile struct boot_args *)ba_pa;

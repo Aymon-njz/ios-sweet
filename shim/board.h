@@ -11,6 +11,14 @@
 #define GICD_BASE        0x17100000UL /* live FDT: interrupt-controller@17100000 */
 #define GICR_BASE        0x17180000UL
 #define GICR_SIZE        0x00200000UL
+/*
+ * A 1 MiB window inside the RAM bank handed to XNU.  loader.c reserves this
+ * range through topOfKernelData before the VM allocator begins.  The UFSHCI
+ * driver uses it only when the explicit ufslowdma=1 diagnostic boot arg is
+ * present.
+ */
+#define UFS_DMA_PA       0x882600000ULL
+#define UFS_DMA_SIZE     0x00100000UL
 #else
 #define BOARD_NAME       "sweet"
 #define FB_BASE          0x9c000000UL

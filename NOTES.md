@@ -35,6 +35,16 @@ structure not initialized`. This is expected: the generated ADT claims the
 iPhone-X D22AP identity but the Sweet-only platform expert does not match the
 Onyx compatible string. Next: extend that matching path for `xiaomi,onyx`.
 
+**UFS diagnostic update (2026-10-22):** build `bfaf1cc` replaced vectorized
+`bzero` operations on the diagnostic descriptor area with aligned volatile
+stores.  That removes the prior device-memory alignment abort.  The next
+phone screen reached UFS initialization but panicked in `phystokv_range`:
+the test address `0x81300000` was mistakenly copied from Sweet's low-memory
+map, while Onyx XNU RAM is `0x880000000..0x8af6fd000`.  The pending follow-up
+reserves `0x882600000..0x882700000` in the Onyx shim's `topOfKernelData` and
+uses that real RAM window for the explicit `ufslowdma=1` test.  Local Onyx
+shim rebuild passed (SHA-256 `9b4b9e2901317fe05457dc6be5d00aeccae4e6f9e913449d52dea3c588e7926b`).
+
 The stock `vendor_boot_a` was restored immediately from the verified 96 MiB
 backup, and Android booted normally. This fastboot implementation lacks
 `fetch`, so post-write readback is unavailable; retain the host-side SHA-256
